@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wagon Loading Control Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 18px;
+      border-bottom: 1px solid #1e293b;
+      padding-bottom: 8px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 14px;
+    }
+
+    input, select {
+      background: #020617;
+      border: 1px solid #334155;
+      color: #e5e7eb;
+    }
+
+    button {
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .log-box {
+      background: black;
+      height: 160px;
+      overflow-y: auto;
+      font-family: monospace;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #334155;
+    }
+
+    .log {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>🚆 Wagon Loading Control Panel</h1>
+
+<div class="container">
+
+  <!-- ADD TRAIN (AUTO START LOADING) -->
+  <div class="card">
+    <h2>➕ Add Train (Auto Loading by Siding)</h2>
+
+    <div class="form-row">
+      <input id="train_id" placeholder="Train ID">
+      <input id="wagon_count" type="number" placeholder="Wagon Count">
+      <select id="siding">
+        <option value="">Select Siding</option>
+        <option value="SPUR-8">SPUR-8</option>
+        <option value="SPUR-9">SPUR-9</option>
+      </select>
+      <input id="max_bags" type="number" value="10" placeholder="Max Bags">
+    </div>
+
+    <button onclick="addTrain()">Add Train & Start Loading</button>
+  </div>
+
+
+  <!-- RAKE HAUL OUT -->
+  <div class="card">
+    <h2>🚚 Rake Haul-Out</h2>
+
+    <div class="form-row">
+      <input id="haul_rake_serial" placeholder="Rake Serial Number">
+      <input id="haul_out_time" type="datetime-local" step="60">
+    </div>
+
+    <button onclick="updateRakeHaulOut()">
+      Update Haul-Out Time
+    </button>
+  </div>
+
+  <!-- RESET SYSTEM -->
+  <div class="card">
+    <h2 style="color:#f87171;">🚨 Reset System</h2>
+
+    <button
+      style="background:#dc2626;"
+      onclick="resetSystem()">
+      Reset All Tables
+    </button>
+
+    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">
+      This will delete all operational data.
+    </p>
+  </div>
+
+  <!-- LOGS -->
+  <div class="card">
+    <h2>📜 Activity Log</h2>
+    <div class="log-box" id="logBox"></div>
+  </div>
+
+</div>
+
+<script>
+function log(message) {
+  const box = document.getElementById("logBox");
+  const div = document.createElement("div");
+  div.className = "log";
+  div.innerText = new Date().toLocaleTimeString() + " | " + message;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+async function addTrain() {
+  const payload = {
+    train_id: document.getElementById("train_id").value,
+    wagon_count: Number(document.getElementById("wagon_count").value),
+    siding: document.getElementById("siding").value,
+    max_bags: Number(document.getElementById("max_bags").value)
+  };
+
+  if (!payload.siding) {
+    log("Please select siding");
+    return;
+  }
+
+  const res = await fetch("/add-train", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    log("Train added. Loading started for siding " + payload.siding);
+  } else {
+    log("Error: " + data.error);
+  }
+}
+
+</script>
+
+<script>
+async function resetSystem() {
+  const ok = confirm(
+    "⚠️ WARNING!\n\nThis will DELETE ALL DATA.\n\nContinue?"
+  );
+  if (!ok) return;
+
+  const res = await fetch("/reset-system", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ confirm: "YES" })
+  });
+
+  if (res.ok) {
+    log("SYSTEM RESET completed");
+  } else {
+    log("System reset failed");
+  }
+}
+</script>
+
+<script>
+async function updateRakeHaulOut() {
+  const rakeSerial =
+    document.getElementById("haul_rake_serial").value;
+
+  const raw =
+    document.getElementById("haul_out_time").value;
+
+  if (!rakeSerial || !raw) {
+    log("Rake serial and datetime required");
+    return;
+  }
+
+  const haulOutDatetime = raw.replace("T", " ") + ":00";
+
+  const res = await fetch("/update-rake-haulout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      rake_serial_number: rakeSerial,
+      rake_haul_out_datetime: haulOutDatetime
+    })
+  });
+
+  if (res.ok) {
+    log("Haul-out updated for " + rakeSerial);
+  } else {
+    const err = await res.json();
+    log("Error: " + err.error);
+  }
+}
+</script>
+
+<script>
+async function loadIdentifiers() {
+  const res = await fetch("/available-identifiers");
+  if (!res.ok) return;
+
+  const data = await res.json();
+  log("Available indents: " + data.indent_numbers.length +
+      ", rakes: " + data.rake_serial_numbers.length);
+}
+
+window.onload = loadIdentifiers;
+</script>
+
+</body>
+</html>
