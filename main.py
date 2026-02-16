@@ -195,6 +195,49 @@ def add_train():
         return jsonify({"error": str(e)}), 500
 
 # ==================================================
+# UPDATE RAKE HAUL OUT
+# ==================================================
+@app.route("/update-rake-haulout", methods=["POST"])
+def update_rake_haulout():
+    data = request.get_json()
+
+    rake_serial_number = data.get("rake_serial_number")
+    haul_out_datetime = data.get("rake_haul_out_datetime")
+
+    if not rake_serial_number or not haul_out_datetime:
+        return jsonify({
+            "error": "rake_serial_number and rake_haul_out_datetime required"
+        }), 400
+
+    try:
+        haul_out_dt = datetime.fromisoformat(haul_out_datetime)
+
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+
+        cur.execute("""
+            UPDATE dispatch_records
+            SET rake_haul_out_datetime = %s
+            WHERE rake_serial_number = %s
+        """, (haul_out_dt, rake_serial_number))
+
+        if cur.rowcount == 0:
+            conn.rollback()
+            return jsonify({"error": "Rake not found"}), 404
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({
+            "status": "rake_haul_out_updated"
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ==================================================
 # RESET
 # ==================================================
 @app.route("/reset-system", methods=["POST"])
