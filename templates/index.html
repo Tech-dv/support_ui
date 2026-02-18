@@ -2,258 +2,395 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Wagon Loading Control Panel</title>
+  <title>Wagon & Camera Control Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #0f172a;
       color: #e5e7eb;
       margin: 0;
       padding: 20px;
     }
+    h1 { text-align: center; margin-bottom: 30px; color: #60a5fa; }
 
-    h1 {
-      text-align: center;
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #334155;
       margin-bottom: 25px;
+      max-width: 1100px;
+      margin-left: auto;
+      margin-right: auto;
     }
+    .tab {
+      padding: 14px 28px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      margin-right: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .tab.active {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+    .tab:hover:not(.active) { background: #334155; }
 
-    .container {
-      max-width: 900px;
-      margin: auto;
-      display: grid;
-      gap: 20px;
+    .tab-content {
+      max-width: 1100px;
+      margin: 0 auto;
     }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
 
     .card {
       background: #020617;
       border: 1px solid #1e293b;
       border-radius: 10px;
-      padding: 20px;
+      padding: 22px;
+      margin-bottom: 24px;
     }
-
     .card h2 {
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 18px;
+      margin: 0 0 16px 0;
+      font-size: 1.25rem;
       border-bottom: 1px solid #1e293b;
-      padding-bottom: 8px;
+      padding-bottom: 10px;
     }
 
     .form-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-bottom: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
     }
-
     input, select, button {
-      padding: 10px;
+      padding: 11px;
       border-radius: 6px;
-      border: none;
-      font-size: 14px;
-    }
-
-    input, select {
-      background: #020617;
       border: 1px solid #334155;
+      font-size: 15px;
+    }
+    input, select {
+      background: #0f172a;
       color: #e5e7eb;
     }
-
     button {
       background: #2563eb;
       color: white;
+      border: none;
       cursor: pointer;
     }
-
-    button:hover {
-      background: #1d4ed8;
-    }
+    button:hover { background: #1d4ed8; }
+    button.danger { background: #dc2626; }
+    button.danger:hover { background: #b91c1c; }
 
     .log-box {
-      background: black;
-      height: 160px;
+      background: #000;
+      height: 180px;
       overflow-y: auto;
-      font-family: monospace;
-      padding: 10px;
+      font-family: 'Courier New', monospace;
+      padding: 12px;
       border-radius: 6px;
       border: 1px solid #334155;
+      font-size: 13px;
     }
 
-    .log {
-      margin-bottom: 5px;
+    /* Camera table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 14px;
     }
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #334155;
+    }
+    th { background: #1e293b; }
+    .on  { color: #22c55e; font-weight: bold; }
+    .off { color: #ef4444; font-weight: bold; }
   </style>
 </head>
-
 <body>
 
-<h1>🚆 Wagon Loading Control Panel</h1>
+<h1>🚆 Wagon & Camera Control Center</h1>
 
-<div class="container">
+<div class="tabs">
+  <div class="tab active" onclick="openTab('wagon')">Wagon Loading</div>
+  <div class="tab"        onclick="openTab('camera')">Camera Dashboard</div>
+</div>
 
-  <!-- ADD TRAIN (AUTO START LOADING) -->
-  <div class="card">
-    <h2>➕ Add Train (Auto Loading by Siding)</h2>
+<div class="tab-content">
 
-    <div class="form-row">
-      <input id="train_id" placeholder="Train ID">
-      <input id="wagon_count" type="number" placeholder="Wagon Count">
-      <select id="siding">
-        <option value="">Select Siding</option>
-        <option value="SPUR-8">SPUR-8</option>
-        <option value="SPUR-9">SPUR-9</option>
-      </select>
-      <input id="max_bags" type="number" value="10" placeholder="Max Bags">
+  <!-- ─── Wagon Tab ─────────────────────────────────────────────── -->
+  <div id="wagon" class="tab-pane active">
+
+    <div class="card">
+      <h2>➕ Add Train (Auto Loading by Siding)</h2>
+      <div class="form-row">
+        <input id="train_id"     placeholder="Train ID">
+        <input id="wagon_count"  type="number" placeholder="Wagon Count">
+        <select id="siding">
+          <option value="">Select Siding</option>
+          <option value="SPUR-8">SPUR-8</option>
+          <option value="SPUR-9">SPUR-9</option>
+        </select>
+        <input id="max_bags"     type="number" value="10" placeholder="Max Bags per Wagon">
+      </div>
+      <button onclick="addTrain()">Add Train & Start Loading</button>
     </div>
 
-    <button onclick="addTrain()">Add Train & Start Loading</button>
-  </div>
-
-
-  <!-- RAKE HAUL OUT -->
-  <div class="card">
-    <h2>🚚 Rake Haul-Out</h2>
-
-    <div class="form-row">
-      <input id="haul_rake_serial" placeholder="Rake Serial Number">
-      <input id="haul_out_time" type="datetime-local" step="60">
+    <div class="card">
+      <h2>🚚 Rake Haul-Out</h2>
+      <div class="form-row">
+        <input id="haul_rake_serial" placeholder="Rake Serial Number">
+        <input id="haul_out_time" type="datetime-local" step="60">
+      </div>
+      <button onclick="updateRakeHaulOut()">Update Haul-Out Time</button>
     </div>
 
-    <button onclick="updateRakeHaulOut()">
-      Update Haul-Out Time
-    </button>
+    <div class="card">
+      <h2 style="color:#f87171;">🚨 Reset System</h2>
+      <button class="danger" onclick="resetSystem()">Reset All Tables</button>
+      <p style="font-size:13px; color:#94a3b8; margin-top:10px;">
+        This will delete all operational data — irreversible!
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>📜 Activity Log</h2>
+      <div class="log-box" id="logBox"></div>
+    </div>
+
   </div>
 
-  <!-- RESET SYSTEM -->
-  <div class="card">
-    <h2 style="color:#f87171;">🚨 Reset System</h2>
 
-    <button
-      style="background:#dc2626;"
-      onclick="resetSystem()">
-      Reset All Tables
-    </button>
+  <!-- ─── Camera Tab ────────────────────────────────────────────── -->
+  <div id="camera" class="tab-pane">
 
-    <p style="font-size:12px;color:#94a3b8;margin-top:8px;">
-      This will delete all operational data.
-    </p>
-  </div>
+    <div class="card">
+      <h2>📷 Add New Camera</h2>
+      <div class="form-row">
+        <input id="cameraName" placeholder="Camera Name (e.g. RP56)">
+        <select id="cam_siding">
+          <option value="SPUR-8">SPUR-8</option>
+          <option value="SPUR-9">SPUR-9</option>
+        </select>
+        <select id="cam_status">
+          <option value="true">ON</option>
+          <option value="false">OFF</option>
+        </select>
+        <button onclick="addCamera()">Add Camera</button>
+      </div>
+    </div>
 
-  <!-- LOGS -->
-  <div class="card">
-    <h2>📜 Activity Log</h2>
-    <div class="log-box" id="logBox"></div>
+    <div class="card">
+      <h2>Camera Status Dashboard</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Camera</th>
+            <th>Siding</th>
+            <th>Status</th>
+            <th>Blur Detect</th>
+            <th>Shake Detect</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cameraTable"></tbody>
+      </table>
+    </div>
+
   </div>
 
 </div>
 
+
 <script>
+// ─── Tab switching ────────────────────────────────────────────────
+function openTab(tabName) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active"));
+
+  event.currentTarget.classList.add("active");
+  document.getElementById(tabName).classList.add("active");
+}
+
+// ─── Shared logger ────────────────────────────────────────────────
 function log(message) {
   const box = document.getElementById("logBox");
+  if (!box) return;
   const div = document.createElement("div");
-  div.className = "log";
-  div.innerText = new Date().toLocaleTimeString() + " | " + message;
+  div.textContent = new Date().toLocaleTimeString() + " | " + message;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
 
+// ─── Wagon functions (your original ones – slightly cleaned) ──────
 async function addTrain() {
   const payload = {
-    train_id: document.getElementById("train_id").value,
-    wagon_count: Number(document.getElementById("wagon_count").value),
-    siding: document.getElementById("siding").value,
-    max_bags: Number(document.getElementById("max_bags").value)
+    train_id:     document.getElementById("train_id").value.trim(),
+    wagon_count:  Number(document.getElementById("wagon_count").value),
+    siding:       document.getElementById("siding").value,
+    max_bags:     Number(document.getElementById("max_bags").value)
   };
 
-  if (!payload.siding) {
-    log("Please select siding");
-    return;
-  }
+  if (!payload.siding) return log("Please select siding");
 
-  const res = await fetch("/add-train", {
+  try {
+    const res = await fetch("/add-train", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok) {
+      log(`Train added → Loading started for ${payload.siding}`);
+    } else {
+      log("Error: " + (data.error || "Unknown"));
+    }
+  } catch (err) {
+    log("Network error: " + err.message);
+  }
+}
+
+async function updateRakeHaulOut() {
+  const rake = document.getElementById("haul_rake_serial").value.trim();
+  const raw  = document.getElementById("haul_out_time").value;
+  if (!rake || !raw) return log("Rake serial & time required");
+
+  const dt = raw.replace("T", " ") + ":00";
+
+  try {
+    const res = await fetch("/update-rake-haulout", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        rake_serial_number: rake,
+        rake_haul_out_datetime: dt
+      })
+    });
+    if (res.ok) {
+      log(`Haul-out updated → ${rake}`);
+    } else {
+      const err = await res.json();
+      log("Error: " + err.error);
+    }
+  } catch (err) {
+    log("Network error");
+  }
+}
+
+async function resetSystem() {
+  if (!confirm("⚠️  ALL DATA WILL BE DELETED!\n\nContinue?")) return;
+
+  try {
+    const res = await fetch("/reset-system", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({confirm: "YES"})
+    });
+    if (res.ok) log("SYSTEM RESET completed");
+    else log("Reset failed");
+  } catch (err) {
+    log("Network error during reset");
+  }
+}
+
+// ─── Camera functions ─────────────────────────────────────────────
+async function loadCameras() {
+  try {
+    const res = await fetch("/cameras");
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const tbody = document.getElementById("cameraTable");
+    tbody.innerHTML = "";
+
+    data.forEach(cam => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${cam.camera_name}</td>
+        <td>${cam.siding}</td>
+        <td class="${cam.status ? 'on' : 'off'}">${cam.status ? 'ON' : 'OFF'}</td>
+        <td class="${cam.blur   ? 'on' : 'off'}">${cam.blur   ? 'ON' : 'OFF'}</td>
+        <td class="${cam.shaking? 'on' : 'off'}">${cam.shaking? 'ON' : 'OFF'}</td>
+        <td>
+          <button onclick="toggleCamera(${cam.id}, ${cam.status})">
+            ${cam.status ? 'Turn OFF' : 'Turn ON'}
+          </button>
+          <button onclick="toggleBlur(${cam.id}, ${cam.blur})">
+            ${cam.blur ? 'Blur OFF' : 'Blur ON'}
+          </button>
+          <button onclick="toggleShaking(${cam.id}, ${cam.shaking})">
+            ${cam.shaking ? 'Shake OFF' : 'Shake ON'}
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error("Camera load failed", err);
+  }
+}
+
+async function addCamera() {
+  const name   = document.getElementById("cameraName").value.trim();
+  const siding = document.getElementById("cam_siding").value;
+  const status = document.getElementById("cam_status").value === "true";
+
+  if (!name) return alert("Camera name required");
+
+  try {
+    await fetch("/add-camera", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ camera_name: name, siding, status })
+    });
+    document.getElementById("cameraName").value = "";
+    loadCameras();
+  } catch (err) {
+    alert("Failed to add camera");
+  }
+}
+
+async function toggleCamera(id, current) {
+  await fetch("/toggle", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ id, status: !current })
   });
-
-  const data = await res.json();
-
-  if (res.ok) {
-    log("Train added. Loading started for siding " + payload.siding);
-  } else {
-    log("Error: " + data.error);
-  }
+  loadCameras();
 }
 
-</script>
-
-<script>
-async function resetSystem() {
-  const ok = confirm(
-    "⚠️ WARNING!\n\nThis will DELETE ALL DATA.\n\nContinue?"
-  );
-  if (!ok) return;
-
-  const res = await fetch("/reset-system", {
+async function toggleBlur(id, current) {
+  await fetch("/toggle-blur", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ confirm: "YES" })
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ id, blur: !current })
   });
-
-  if (res.ok) {
-    log("SYSTEM RESET completed");
-  } else {
-    log("System reset failed");
-  }
+  loadCameras();
 }
-</script>
 
-<script>
-async function updateRakeHaulOut() {
-  const rakeSerial =
-    document.getElementById("haul_rake_serial").value;
-
-  const raw =
-    document.getElementById("haul_out_time").value;
-
-  if (!rakeSerial || !raw) {
-    log("Rake serial and datetime required");
-    return;
-  }
-
-  const haulOutDatetime = raw.replace("T", " ") + ":00";
-
-  const res = await fetch("/update-rake-haulout", {
+async function toggleShaking(id, current) {
+  await fetch("/toggle-shaking", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      rake_serial_number: rakeSerial,
-      rake_haul_out_datetime: haulOutDatetime
-    })
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ id, shaking: !current })
   });
-
-  if (res.ok) {
-    log("Haul-out updated for " + rakeSerial);
-  } else {
-    const err = await res.json();
-    log("Error: " + err.error);
-  }
-}
-</script>
-
-<script>
-async function loadIdentifiers() {
-  const res = await fetch("/available-identifiers");
-  if (!res.ok) return;
-
-  const data = await res.json();
-  log("Available indents: " + data.indent_numbers.length +
-      ", rakes: " + data.rake_serial_numbers.length);
+  loadCameras();
 }
 
-window.onload = loadIdentifiers;
+// ─── Init ─────────────────────────────────────────────────────────
+window.onload = () => {
+  loadCameras();
+  setInterval(loadCameras, 6000);   // refresh camera status ~every 6s
+};
 </script>
 
 </body>
